@@ -1,41 +1,34 @@
-variable "rg_name" {
-  description = "The name of the resource group."
+variable "identity_ids" {
+  description = "Specifies a list of user managed identity ids to be assigned to the VM."
+  type        = list(string)
+  default     = []
+}
+
+variable "identity_type" {
+  description = "The Managed Service Identity Type of this Virtual Machine."
   type        = string
+  default     = ""
 }
 
 variable "location" {
-  description = "Location of resources"
+  description = "The location for this resource to be put in"
   type        = string
 }
 
-variable "vm_name" {
-  description = "The name of the virtual machine."
-  type        = string
-}
-
-variable "os_type" {
-  description = "Specifies the operating system type."
+variable "rg_name" {
+  description = "The name of the resource group, this module does not create a resource group, it is expecting the value of a resource group already exists"
   type        = string
   validation {
-    condition     = var.os_type == "linux" || var.os_type == "windows"
-    error_message = "The OS type is not valid, it can only be linux or windows"
+    condition     = length(var.rg_name) > 1 && length(var.rg_name) <= 24
+    error_message = "Resource group name is not valid."
   }
 }
 
-variable "command" {
-  default     = ""
-  description = "A string Command to be executed."
-  type        = string
-}
-
-variable "timestamp" {
-  default     = ""
-  description = "Intended to trigger re-execution of the script when changed."
-
-}
-
 variable "tags" {
-  default     = {}
-  description = "A mapping of tags to assign to the extension."
-  type        = map(any)
+  type        = map(string)
+  description = "A map of the tags to use on the resources that are deployed with this module."
+
+  default = {
+    source = "terraform"
+  }
 }
