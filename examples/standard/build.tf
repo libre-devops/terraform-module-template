@@ -6,4 +6,4 @@ module "rg" {
   tags     = local.tags
 
   #  lock_level = "CanNotDelete" // Do not set this value to skip lock
-} }
+}
