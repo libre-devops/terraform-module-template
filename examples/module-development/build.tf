@@ -1,7 +1,7 @@
 module "rg" {
   source = "registry.terraform.io/libre-devops/rg/azurerm"
 
-  rg_name  = "rg-${var.short}-${var.loc}-${terraform.workspace}-${random_string.entropy.result}"
+  rg_name  = "rg-${var.short}-${var.loc}-${var.env}-${random_string.entropy.result}"
   location = local.location
   tags     = local.tags
 
