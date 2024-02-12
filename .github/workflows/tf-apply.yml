@@ -22,7 +22,7 @@ on:
         default: false
       terraform_compliance_policy_files:
         type: string
-        description: 'Whether checkov should be ran'
+        description: 'The location of terraform-compliance files if used'
         default: "git:https://github.com/libre-devops/azure-naming-convention.git//?ref=main"
       enable_debug_mode:
         type: boolean
