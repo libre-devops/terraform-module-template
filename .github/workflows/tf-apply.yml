@@ -97,7 +97,7 @@ jobs:
         shell: pwsh
         run: |
           .\Run-AzTerraform.ps1 `
-            -TerraformCodeLocation ${{ inputs.working_directory }} `
+            -TerraformCodeLocation ${{ inputs.terraform_code_location }} `
             -RunTerraformInit true `
             -RunTerraformPlan true `
             -RunTerraformPlanDestroy false `
