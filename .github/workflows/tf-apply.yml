@@ -110,7 +110,7 @@ jobs:
             -TerraformCompliancePolicyFiles ${{ inputs.terraform_compliance_policy_files }} `
             -DeletePlanFiles ${{ inputs.delete_plan_files }} `
             -TerraformVersion ${{ inputs.terraform_version }} `
-            -BackendStorageSubscriptionId ${{ secrets.SpokeSubId }} `
+            -BackendStorageSubscriptionId ${{ secrets.SpokeSubscriptionId }} `
             -BackendStorageAccountRgName ${{ secrets.SpokeSaRgName }} `
             -BackendStorageAccountName ${{ secrets.SpokeSaName }} `
             -BackendStorageAccountBlobContainerName ${{ secrets.SpokeSaBlobContainerName }} `
@@ -118,6 +118,6 @@ jobs:
         env:
           ARM_CLIENT_ID: ${{ secrets.SpokeSvpClientId }}
           ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubId }}
-          ARM_TENANT_ID: ${{ secrets.SpokeTenantId }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubscriptionId }}
+          ARM_TENANT_ID: ${{ secrets.SpokeSvpTenantId }}
           ARM_USE_AZUREAD: true
