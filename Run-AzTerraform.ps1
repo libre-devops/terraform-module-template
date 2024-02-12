@@ -2,7 +2,11 @@
 .\Run-AzTerraform.ps1 `
 -RunTerraformInit true `
 -RunTerraformPlan true `
--RunTerraformApply true `
+-RunTerraformApply false `
+-RunTfsec true `
+-RunCheckov true `
+-RunTerraformCompliance true `
+-TerraformCodeLocation "examples/module-development" `
 -BackendStorageSubscriptionId $Env:BACKEND_STORAGE_SUBSCRIPTION_ID `
 -BackendStorageAccountRgName $Env:BACKEND_STORAGE_RESOURCE_GROUP_NAME `
 -BackendStorageAccountName $Env:BACKEND_STORAGE_ACCOUNT_NAME `
@@ -16,6 +20,7 @@
 -RunTerraformPlan false `
 -RunTerraformPlanDestroy true `
 -RunTerraformDestroy true `
+-TerraformCodeLocation "examples/module-development" `
 -BackendStorageSubscriptionId $Env:BACKEND_STORAGE_SUBSCRIPTION_ID `
 -BackendStorageAccountRgName $Env:BACKEND_STORAGE_RESOURCE_GROUP_NAME `
 -BackendStorageAccountName $Env:BACKEND_STORAGE_ACCOUNT_NAME `
@@ -29,10 +34,16 @@ param (
     [string]$RunTerraformPlanDestroy = "false",
     [string]$RunTerraformApply = "false",
     [string]$RunTerraformDestroy = "false",
-    [string]$TerraformCodeLocation = "examples/module-development",
     [bool]$DebugMode = $false,
     [string]$DeletePlanFiles = "true",
     [string]$TerraformVersion = "latest",
+    [string]$RunTfsec = "true",
+    [string]$RunTerraformCompliance = "false",
+    [string]$TerraformCompliancePolicyFiles = "git:https://github.com/libre-devops/azure-naming-convention.git//?ref=main",
+    [string]$RunCheckov = "false",
+
+    [Parameter(Mandatory = $true)]
+    [string]$TerraformCodeLocation,
 
     [Parameter(Mandatory = $true)]
     [string]$BackendStorageSubscriptionId,
@@ -96,6 +107,72 @@ try
         catch
         {
             Write-Warning "[$( $MyInvocation.MyCommand.Name )] Warning: tenv is not installed or not in PATH. Skipping version checking."
+        }
+    }
+
+    function Run-TfSec
+    {
+        [CmdletBinding()]
+        param (
+            [Parameter(Mandatory = $true)]
+            [string]$WorkingDirectory
+        )
+
+        try
+        {
+            $tfsecPath = Get-Command tfsec -ErrorAction Stop
+            Write-Host "[$( $MyInvocation.MyCommand.Name )] Success: Tfsec found at: $( $tfsecPath.Source ), running now..." -ForegroundColor Green
+            tfsec $WorkingDirectory --soft-fail
+        }
+        catch
+        {
+            throw "[$( $MyInvocation.MyCommand.Name )] Error: Tfsec is not installed or not in PATH. Exiting."
+            exit 1
+        }
+    }
+
+    function Run-Checkov
+    {
+        [CmdletBinding()]
+        param (
+            [string]$PlanJsonFile = "tfplan.json",
+            [Parameter(Mandatory = $true)]
+            [string]$WorkingDirectory
+        )
+
+        try
+        {
+            $checkovPath = Get-Command checkov -ErrorAction Stop
+            Write-Host "[$( $MyInvocation.MyCommand.Name )] Success: Checkov found at: $( $checkovPath.Source ), running now..." -ForegroundColor Green
+            checkov -s -f $PlanJsonFile
+        }
+        catch
+        {
+            throw "[$( $MyInvocation.MyCommand.Name )] Error: Checkov is not installed or not in PATH. Exiting."
+            exit 1
+        }
+    }
+
+    function Run-TerraformCompliance
+    {
+        [CmdletBinding()]
+        param (
+            [string]$PlanJsonFile = "tfplan.json",
+            [string]$PolicyFiles = $TerraformCompliancePolicyFiles,
+            [Parameter(Mandatory = $true)]
+            [string]$WorkingDirectory
+        )
+
+        try
+        {
+            $terraformCompliancePath = Get-Command terraform-compliance -ErrorAction Stop
+            Write-Host "[$( $MyInvocation.MyCommand.Name )] Success: Terraform-compliance found at: $( $terraformCompliancePath.Source ), running now..." -ForegroundColor Green
+            terraform-compliance -p $PlanJsonFile -f $PolicyFiles --no-failure
+        }
+        catch
+        {
+            throw "[$( $MyInvocation.MyCommand.Name )] Error: Terraform-Compliance is not installed or not in PATH. Exiting."
+            exit 1
         }
     }
 
@@ -201,6 +278,7 @@ try
         )
 
         Begin {
+
             # Initial setup and variable declarations
             Write-Debug "[$( $MyInvocation.MyCommand.Name )] Debug: Initializing Terraform..."
             $BackendStorageAccountBlobContainerName = $BackendStorageAccountBlobContainerName
@@ -216,6 +294,23 @@ try
         Process {
             try
             {
+
+                $terraformCache = Join-Path -Path $WorkingDirectory -ChildPath ".terraform"
+
+                if (Test-Path -Path $terraformCache)
+                {
+                    try
+                    {
+                        Write-Debug "[$( $MyInvocation.MyCommand.Name )] Debug: Attempting to remove : $terraformCache"
+                        Remove-Item -Force $terraformCache -Recurse -Confirm:$false
+                    }
+                    catch
+                    {
+                        throw "[$( $MyInvocation.MyCommand.Name )] Error: Failed to remove .terraform folder: $_"
+                        exit 1
+                    }
+                }
+
                 # Change to the specified working directory
                 Set-Location -Path $WorkingDirectory
 
@@ -408,6 +503,9 @@ try
     $ConvertedRunTerraformApply = Convert-ToBoolean $RunTerraformApply
     $ConvertedRunTerraformDestroy = Convert-ToBoolean $RunTerraformDestroy
     $ConvertedDeletePlanFiles = Convert-ToBoolean $DeletePlanFiles
+    $ConvertedRunTfsec = Convert-ToBoolean $RunTfsec
+    $ConvertedRunTerraformCompliance = Convert-ToBoolean $RunTerraformCompliance
+    $ConvertedRunCheckov = Convert-ToBoolean $RunCheckov
 
 
     # Diagnostic output
@@ -478,13 +576,25 @@ try
         {
             Invoke-TerraformPlan -WorkingDirectory $WorkingDirectory
             $InvokeTerraformPlanSuccessful = ($LASTEXITCODE -eq 0)
+
+            if ($ConvertedRunTfsec -and $InvokeTerraformPlanSuccessful)
+            {
+                Run-TfSec -WorkingDirectory $WorkingDirectory
+            }
+            if ($ConvertedRunCheckov -and $InvokeTerraformPlanSuccessful)
+            {
+                Run-Checkov -WorkingDirectory $WorkingDirectory
+            }
+            if ($ConvertedRunTerraformCompliance -and $InvokeTerraformPlanSuccessful)
+            {
+                Run-TerraformCompliance -WorkingDirectory $WorkingDirectory
+            }
         }
 
         if ($InvokeTerraformInitSuccessful -and $ConvertedRunTerraformPlanDestroy -and -not$ConvertedRunTerraformPlan)
         {
             Invoke-TerraformPlanDestroy -WorkingDirectory $WorkingDirectory
             $InvokeTerraformPlanDestroySuccessful = ($LASTEXITCODE -eq 0)
-
         }
 
         if ($InvokeTerraformInitSuccessful -and $ConvertedRunTerraformApply -and $InvokeTerraformPlanSuccessful)
