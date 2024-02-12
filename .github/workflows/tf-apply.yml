@@ -1,4 +1,4 @@
-name: 'Run Script'
+name: 'Run Terraform Script - Terraform Apply'
 
 # Allow run manually
 on:
