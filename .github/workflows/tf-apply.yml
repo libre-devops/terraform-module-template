@@ -28,10 +28,6 @@ on:
         type: boolean
         description: 'Whether terraform destroy should be ran'
         default: false
-      run_tfsec:
-        type: boolean
-        description: 'Whether tfsec should be ran'
-        default: true
       run_checkov:
         type: boolean
         description: 'Whether checkov should be ran'
@@ -40,18 +36,6 @@ on:
         type: boolean
         description: 'Whether terraform-compliance should be ran'
         default: false
-      terraform_compliance_policy_files:
-        type: string
-        description: 'Whether checkov should be ran'
-        default: "git:https://github.com/libre-devops/azure-naming-convention.git//?ref=main"
-      enable_debug_mode:
-        type: boolean
-        description: 'Whether debug mode should be enable for within the script'
-        default: true
-      delete_plan_files:
-        type: boolean
-        description: 'Whether the tfplan files should be auto deleted'
-        default: true
       terraform_version:
         type: string
         description: 'What version should tenv attempt to use?'
