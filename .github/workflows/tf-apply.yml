@@ -1,4 +1,4 @@
-name: 'Run Terraform Script - Terraform Apply'
+name: 'Terraform Apply'
 
 # Allow run manually
 on:
@@ -8,26 +8,10 @@ on:
         type: string
         description: What working directory should be passed to the script
         default: "examples/module-development"
-      run_terraform_init:
+      run_tfsec:
         type: boolean
-        description: 'Whether terraform init should be ran'
+        description: 'Whether tfsec should be ran'
         default: true
-      run_terraform_plan:
-        type: boolean
-        description: 'Whether terraform plan should be ran'
-        default: true
-      run_terraform_plan_destroy:
-        type: boolean
-        description: 'Whether terraform plan destroy should be ran'
-        default: false
-      run_terraform_apply:
-        type: boolean
-        description: 'Whether terraform apply should be ran'
-        default: false
-      run_terraform_destroy:
-        type: boolean
-        description: 'Whether terraform destroy should be ran'
-        default: false
       run_checkov:
         type: boolean
         description: 'Whether checkov should be ran'
@@ -36,6 +20,18 @@ on:
         type: boolean
         description: 'Whether terraform-compliance should be ran'
         default: false
+      terraform_compliance_policy_files:
+        type: string
+        description: 'Whether checkov should be ran'
+        default: "git:https://github.com/libre-devops/azure-naming-convention.git//?ref=main"
+      enable_debug_mode:
+        type: boolean
+        description: 'Whether debug mode should be enable for within the script'
+        default: true
+      delete_plan_files:
+        type: boolean
+        description: 'Whether the tfplan files should be auto deleted'
+        default: true
       terraform_version:
         type: string
         description: 'What version should tenv attempt to use?'
@@ -102,11 +98,11 @@ jobs:
         run: |
           .\Run-AzTerraform.ps1 `
             -TerraformCodeLocation ${{ inputs.working_directory }} `
-            -RunTerraformInit ${{ inputs.run_terraform_init }} `
-            -RunTerraformPlan ${{ inputs.run_terraform_plan }} `
-            -RunTerraformPlanDestroy ${{ inputs.run_terraform_plan_destroy }} `
-            -RunTerraformApply ${{ inputs.run_terraform_apply }} `
-            -RunTerraformDestroy ${{ inputs.run_terraform_destroy }} `
+            -RunTerraformInit true `
+            -RunTerraformPlan true `
+            -RunTerraformPlanDestroy false `
+            -RunTerraformApply false `
+            -RunTerraformDestroy false `
             -DebugMode ${{ inputs.enable_debug_mode }} `
             -RunTfsec ${{ inputs.run_tfsec }} `
             -RunCheckov ${{ inputs.run_checkov }} `
