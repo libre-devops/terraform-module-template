@@ -103,6 +103,12 @@ try
         {
             $tenvPath = Get-Command tenv -ErrorAction Stop
             Write-Host "[$( $MyInvocation.MyCommand.Name )] Success: Tenv found at: $( $tenvPath.Source )" -ForegroundColor Green
+            if ($TerraformVersion -ne 'default')
+            {
+                Write-Host "[$( $MyInvocation.MyCommand.Name )] Info: Desired terraform version is $TerraformVersion, attempting to install now" -ForegroundColor Green
+                tenv tf install $TerraformVersion --verbose
+                tenv tf use $TerraformVersion --verbose
+            }
         }
         catch
         {
