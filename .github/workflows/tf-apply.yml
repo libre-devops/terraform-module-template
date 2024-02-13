@@ -61,58 +61,58 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install tenv
-        id: install-tenv
-        shell: pwsh
-        run: |
-          $tfenvUri = "https://api.github.com/repos/tofuutils/tenv/releases/latest"
-          $tenvLatestVersion = (Invoke-RestMethod -Uri $tfenvUri).tag_name
-          
-          $tenvDownloadUrl = "https://github.com/tofuutils/tenv/releases/latest/download/tenv_${tenvLatestVersion}_amd64.deb"
-          $tenvFilePath = "./tenv_${tenvLatestVersion}_amd64.deb"
-          Invoke-WebRequest -Uri $tenvDownloadUrl -OutFile $tenvFilePath
-          
-          sudo dpkg -i $tenvFilePath
-
-      - name: Install tfsec
-        id: install-tfsec
-        shell: pwsh
-        run: |
-          brew install tfsec
-
-      - name: Install checkov
-        id: install-checkov
-        shell: pwsh
-        run: |
-          pip3 install checkov
-
-      - name: Install terraform-compliance
-        id: install-terraform-compliance
-        shell: pwsh
-        run: |
-          pip3 install terraform-compliance
+#      - name: Install tenv
+#        id: install-tenv
+#        shell: pwsh
+#        run: |
+#          $tfenvUri = "https://api.github.com/repos/tofuutils/tenv/releases/latest"
+#          $tenvLatestVersion = (Invoke-RestMethod -Uri $tfenvUri).tag_name
+#
+#          $tenvDownloadUrl = "https://github.com/tofuutils/tenv/releases/latest/download/tenv_${tenvLatestVersion}_amd64.deb"
+#          $tenvFilePath = "./tenv_${tenvLatestVersion}_amd64.deb"
+#          Invoke-WebRequest -Uri $tenvDownloadUrl -OutFile $tenvFilePath
+#
+#          sudo dpkg -i $tenvFilePath
+#
+#      - name: Install tfsec
+#        id: install-tfsec
+#        shell: pwsh
+#        run: |
+#          brew install tfsec
+#
+#      - name: Install checkov
+#        id: install-checkov
+#        shell: pwsh
+#        run: |
+#          pip3 install checkov
+#
+#      - name: Install terraform-compliance
+#        id: install-terraform-compliance
+#        shell: pwsh
+#        run: |
+#          pip3 install terraform-compliance
 
       - name: Build
         id: run-script
         shell: pwsh
         run: |
-            function Convert-ToBoolean($value)
-              {
-                  $valueLower = $value.ToLower()
-                  if ($valueLower -eq "true")
-                  {
-                      return $true
-                  }
-                  elseif ($valueLower -eq "false")
-                  {
-                      return $false
-                  }
-                  else
-                  {
-                      throw "[$( $MyInvocation.MyCommand.Name )] Error: Invalid value - $value. Exiting."
-                      exit 1
-                  }
-              }
+          function Convert-ToBoolean($value)
+            {
+                $valueLower = $value.ToLower()
+                if ($valueLower -eq "true")
+                {
+                    return $true
+                }
+                elseif ($valueLower -eq "false")
+                {
+                    return $false
+                }
+                else
+                {
+                    throw "[$( $MyInvocation.MyCommand.Name )] Error: Invalid value - $value. Exiting."
+                    exit 1
+                }
+            }
           
           $DebugMode = Convert-ToBoolean ${{ inputs.enable_debug_mode }}
           
