@@ -111,7 +111,7 @@ jobs:
             -DeletePlanFiles ${{ inputs.delete_plan_files }} `
             -TerraformVersion ${{ inputs.terraform_version }} `
             -BackendStorageSubscriptionId ${{ secrets.SpokeSubscriptionId }} `
-            -BackendStorageAccountRgName ${{ secrets.SpokeSaRgName }} `
+            -BackendStorageAccountRgName ${{ secrets.SpokeMgmtRgName }} `
             -BackendStorageAccountName ${{ secrets.SpokeSaName }} `
             -BackendStorageAccountBlobContainerName ${{ secrets.SpokeSaBlobContainerName }} `
             -BackendStorageAccountBlobStatefileName ${{ inputs.terraform_state_name }}
