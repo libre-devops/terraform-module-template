@@ -1,4 +1,4 @@
-name: 'Terraform Apply'
+name: 'Terraform Destroy'
 
 # Allow run manually
 on:
