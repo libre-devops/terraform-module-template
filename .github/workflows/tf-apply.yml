@@ -27,7 +27,7 @@ on:
       enable_debug_mode:
         type: boolean
         description: 'Whether debug mode should be enable for within the script'
-        default: true
+        default: false
       delete_plan_files:
         type: boolean
         description: 'Whether the tfplan files should be auto deleted'
@@ -129,7 +129,7 @@ jobs:
             -RunTerraformInit true `
             -RunTerraformPlan true `
             -RunTerraformPlanDestroy false `
-            -RunTerraformApply false `
+            -RunTerraformApply true `
             -RunTerraformDestroy false `
             -DebugMode $DebugMode `
             -RunTfsec ${{ inputs.run_tfsec }} `
