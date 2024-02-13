@@ -96,6 +96,26 @@ jobs:
         id: run-script
         shell: pwsh
         run: |
+            function Convert-ToBoolean($value)
+              {
+                  $valueLower = $value.ToLower()
+                  if ($valueLower -eq "true")
+                  {
+                      return $true
+                  }
+                  elseif ($valueLower -eq "false")
+                  {
+                      return $false
+                  }
+                  else
+                  {
+                      throw "[$( $MyInvocation.MyCommand.Name )] Error: Invalid value - $value. Exiting."
+                      exit 1
+                  }
+              }
+          
+          $DebugMode = Convert-ToBoolean ${{ inputs.enable_debug_mode }}
+          
           .\Run-AzTerraform.ps1 `
             -TerraformCodeLocation ${{ inputs.terraform_code_location }} `
             -RunTerraformInit true `
@@ -103,7 +123,7 @@ jobs:
             -RunTerraformPlanDestroy false `
             -RunTerraformApply false `
             -RunTerraformDestroy false `
-            -DebugMode ${{ inputs.enable_debug_mode }} `
+            -DebugMode $DebugMode `
             -RunTfsec ${{ inputs.run_tfsec }} `
             -RunCheckov ${{ inputs.run_checkov }} `
             -RunTerraformCompliance ${{ inputs.run_terraform_compliance }} `
