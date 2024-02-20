@@ -59,14 +59,14 @@ parameters:
   displayName: "Enter the variable group which contains your authentication information"
 
 variables:
-  - group: ${{ parameters.variable_grou_name }}
+  - group: ${{ parameters.variable_group_name }}
 
 
 jobs:
 - job: RunScript
   displayName: 'Run Script'
   pool:
-    vmImage: ${{ parameters.HOSTED_AGENT_IMAGE }}
+    vmImage: ${{ parameters.hosted_agent_name }}
   workspace:
     clean: all
   steps:
