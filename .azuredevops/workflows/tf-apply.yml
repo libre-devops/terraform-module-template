@@ -69,7 +69,7 @@ variables:
 jobs:
 - job: RunScript
   displayName: 'Run Script'
-  pool: ${{ parameters.hosted_agent_name }}
+  pool: ${{ parameters.pool_name }}
   workspace:
     clean: all
   steps:
