@@ -104,7 +104,7 @@ jobs:
             -RunTerraformInit true `
             -RunTerraformPlan true `
             -RunTerraformPlanDestroy false `
-            -RunTerraformApply true `
+            -RunTerraformApply false `
             -RunTerraformDestroy false `
             -DebugMode $DebugMode `
             -RunTfsec ${{ parameters.run_tfsec }} `
