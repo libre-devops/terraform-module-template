@@ -11,7 +11,7 @@ parameters:
   - name: run_tfsec
     displayName: Whether tfsec should be ran
     type: boolean
-    default: "true"
+    default: "false"
 
   - name: run_checkov
     displayName: Whether checkov should be ran
@@ -122,8 +122,8 @@ jobs:
             -RunTerraformInit true `
             -RunTerraformPlan true `
             -RunTerraformPlanDestroy false `
-            -RunTerraformApply true `
-            -RunTerraformDestroy true `
+            -RunTerraformApply false `
+            -RunTerraformDestroy false `
             -DebugMode $DebugMode `
             -RunTfsec ${{ parameters.run_tfsec }} `
             -RunCheckov ${{ parameters.run_checkov }} `

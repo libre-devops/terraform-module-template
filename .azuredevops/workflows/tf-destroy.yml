@@ -120,9 +120,9 @@ jobs:
           .\Run-AzTerraform.ps1 `
             -TerraformCodeLocation ${{ parameters.terraform_code_location }} `
             -RunTerraformInit true `
-            -RunTerraformPlan true `
-            -RunTerraformPlanDestroy false `
-            -RunTerraformApply true `
+            -RunTerraformPlan false `
+            -RunTerraformPlanDestroy true `
+            -RunTerraformApply false `
             -RunTerraformDestroy true `
             -DebugMode $DebugMode `
             -RunTfsec ${{ parameters.run_tfsec }} `
