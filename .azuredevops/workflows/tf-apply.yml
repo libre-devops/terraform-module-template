@@ -48,10 +48,14 @@ parameters:
   type: string
   default: 'lbd-uks-prd-test-build.terraform.tfstate'
 
-- name: hosted_agent_name
-  displayName: "The name of the vmImage for Azure Hosted Pools"
+- name: pool_name
+  displayName: "The name of the pool to use"
   type: string
-  default: "ubuntu-latest"
+  values:
+    - "Default"
+    - "Azure Pipeline"
+    - "lbd-linux-pool"
+  default: "Default"
 
 - name: variable_group_name
   type: string
