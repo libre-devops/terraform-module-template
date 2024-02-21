@@ -97,6 +97,24 @@ jobs:
         displayName: 'Install PowerShell modules'
 
       - pwsh: |
+          function Convert-ToBoolean($value)
+            {
+                $valueLower = $value.ToLower()
+                if ($valueLower -eq "true")
+                {
+                    return $true
+                }
+                elseif ($valueLower -eq "false")
+                {
+                    return $false
+                }
+                else
+                {
+                    throw "[$( $MyInvocation.MyCommand.Name )] Error: Invalid value - $value. Exiting."
+                    exit 1
+                }
+            }
+          
           $DebugMode = $(Convert-ToBoolean ${{ parameters.enable_debug_mode }})
           
           .\Run-AzTerraform.ps1 `
