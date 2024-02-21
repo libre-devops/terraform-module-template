@@ -78,17 +78,17 @@ jobs:
       - pwsh: |
           brew install tfsec
         displayName: 'Install tfsec'
-        condition: eq(parameters.run_tfsec, true)
+        condition: ${{ eq(parameters.run_tfsec, true) }}
 
       - pwsh: |
           pip3 install checkov
         displayName: 'Install checkov'
-        condition: eq(parameters.run_checkov, true)
+        condition: ${{ eq(parameters.run_checkov, true) }}
 
       - pwsh: |
           pip3 install terraform-compliance
         displayName: 'Install terraform-compliance'
-        condition: eq(parameters.run_terraform_compliance, true)
+        condition: ${{ eq(parameters.run_terraform_compliance, true) }}
 
       - pwsh: |
           Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
