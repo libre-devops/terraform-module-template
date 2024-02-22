@@ -3,7 +3,7 @@
 -RunTerraformInit true `
 -RunTerraformPlan true `
 -RunTerraformApply false `
--RunTfsec true `
+-RunTrivy true `
 -RunCheckov true `
 -RunTerraformCompliance true `
 -TerraformCodeLocation "examples/module-development" `
@@ -37,7 +37,7 @@ param (
     [bool]$DebugMode = $false,
     [string]$DeletePlanFiles = "true",
     [string]$TerraformVersion = "latest",
-    [string]$RunTfsec = "true",
+    [string]$RunTrivy = "true",
     [string]$RunTerraformCompliance = "false",
     [string]$TerraformCompliancePolicyFiles = "git:https://github.com/libre-devops/azure-naming-convention.git//?ref=main",
     [string]$RunCheckov = "false",
@@ -116,23 +116,24 @@ try
         }
     }
 
-    function Run-TfSec
+    function Run-Trivy
     {
         [CmdletBinding()]
         param (
+            [string]$PlanJsonFile = "tfplan.json",
             [Parameter(Mandatory = $true)]
             [string]$WorkingDirectory
         )
 
         try
         {
-            $tfsecPath = Get-Command tfsec -ErrorAction Stop
-            Write-Host "[$( $MyInvocation.MyCommand.Name )] Success: Tfsec found at: $( $tfsecPath.Source ), running now..." -ForegroundColor Green
-            tfsec $WorkingDirectory --soft-fail
+            $trivyPath = Get-Command trivy -ErrorAction Stop
+            Write-Host "[$( $MyInvocation.MyCommand.Name )] Success: Trivy found at: $( $trivyPath.Source ), running now..." -ForegroundColor Green
+            trivy config $PlanJsonFile --exit-code 0 # soft fail
         }
         catch
         {
-            throw "[$( $MyInvocation.MyCommand.Name )] Error: Tfsec is not installed or not in PATH. Exiting."
+            throw "[$( $MyInvocation.MyCommand.Name )] Error: Trivy is not installed or not in PATH. Exiting."
             exit 1
         }
     }
@@ -509,7 +510,7 @@ try
     $ConvertedRunTerraformApply = Convert-ToBoolean $RunTerraformApply
     $ConvertedRunTerraformDestroy = Convert-ToBoolean $RunTerraformDestroy
     $ConvertedDeletePlanFiles = Convert-ToBoolean $DeletePlanFiles
-    $ConvertedRunTfsec = Convert-ToBoolean $RunTfsec
+    $ConvertedRunTrivy = Convert-ToBoolean $RunTrivy
     $ConvertedRunTerraformCompliance = Convert-ToBoolean $RunTerraformCompliance
     $ConvertedRunCheckov = Convert-ToBoolean $RunCheckov
 
@@ -583,9 +584,9 @@ try
             Invoke-TerraformPlan -WorkingDirectory $WorkingDirectory
             $InvokeTerraformPlanSuccessful = ($LASTEXITCODE -eq 0)
 
-            if ($ConvertedRunTfsec -and $InvokeTerraformPlanSuccessful)
+            if ($ConvertedRunTrivy -and $InvokeTerraformPlanSuccessful)
             {
-                Run-TfSec -WorkingDirectory $WorkingDirectory
+                Run-Trivy -WorkingDirectory $WorkingDirectory
             }
             if ($ConvertedRunCheckov -and $InvokeTerraformPlanSuccessful)
             {

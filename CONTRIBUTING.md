@@ -23,7 +23,7 @@ The most effective way to suggest changes to our codebase is through pull reques
 While the following workflow is tailored for Terraform submissions, it generally applies to other codes as well:
 
 1. Fork the repository and branch out from `main`.
-2. Ensure you've verified your code with `terraform validate`, `tfsec`, `checkov`, or other linting/security tools. 3. We have a script to help manage our common workflow - `Run-AzTerraform.ps1`
+2. Ensure you've verified your code with `terraform validate`, `trivy`, `checkov`, or other linting/security tools. 3. We have a script to help manage our common workflow - `Run-AzTerraform.ps1`
 3. Use `terraform fmt -recursive` or another formatter like [prettier](https://prettier.io/) to format your Terraform code. We have a script for this as well - `Terraform-Release.ps1`
 4. Files and variables should adhere to the "What You See Is What You Get" (WYSIWYG) naming guideline. For instance, in a terraform repo:
 ```shell

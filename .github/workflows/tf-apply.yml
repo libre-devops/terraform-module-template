@@ -8,9 +8,9 @@ on:
         type: string
         description: What working directory should be passed to the script
         default: "examples/module-development"
-      run_tfsec:
+      run_trivy:
         type: boolean
-        description: 'Whether tfsec should be ran'
+        description: 'Whether trivy should be ran'
         default: true
       run_checkov:
         type: boolean
@@ -74,11 +74,11 @@ jobs:
 
           sudo dpkg -i $tenvFilePath
 
-      - name: Install tfsec
-        id: install-tfsec
+      - name: Install trivy
+        id: install-trivy
         shell: pwsh
         run: |
-          brew install tfsec
+          brew install trivy
 
       - name: Install checkov
         id: install-checkov
@@ -132,7 +132,7 @@ jobs:
             -RunTerraformApply true `
             -RunTerraformDestroy false `
             -DebugMode $DebugMode `
-            -RunTfsec ${{ inputs.run_tfsec }} `
+            -RunTrivy ${{ inputs.run_trivy }} `
             -RunCheckov ${{ inputs.run_checkov }} `
             -RunTerraformCompliance ${{ inputs.run_terraform_compliance }} `
             -TerraformCompliancePolicyFiles ${{ inputs.terraform_compliance_policy_files }} `

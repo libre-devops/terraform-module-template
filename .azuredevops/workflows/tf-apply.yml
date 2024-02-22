@@ -8,8 +8,8 @@ parameters:
     type: string
     default: "examples/module-development"
 
-  - name: run_tfsec
-    displayName: Whether tfsec should be ran
+  - name: run_trivy
+    displayName: Whether trivy should be ran
     type: boolean
     default: "true"
 
@@ -76,9 +76,9 @@ jobs:
       - checkout: self
 
       - pwsh: |
-          brew install tfsec
-        displayName: 'Install tfsec'
-        condition: ${{ eq(parameters.run_tfsec, true) }}
+          brew install trivy
+        displayName: 'Install trivy'
+        condition: ${{ eq(parameters.run_trivy, true) }}
 
       - pwsh: |
           pip3 install checkov
@@ -125,7 +125,7 @@ jobs:
             -RunTerraformApply true `
             -RunTerraformDestroy true `
             -DebugMode $DebugMode `
-            -RunTfsec ${{ parameters.run_tfsec }} `
+            -RunTrivy ${{ parameters.run_trivy }} `
             -RunCheckov ${{ parameters.run_checkov }} `
             -RunTerraformCompliance ${{ parameters.run_terraform_compliance }} `
             -TerraformCompliancePolicyFiles ${{ parameters.terraform_compliance_policy_files }} `
