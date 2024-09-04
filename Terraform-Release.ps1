@@ -3,11 +3,11 @@ param(
     [string]$VariablesOutFile = "./variables.tf",
     [string]$OutputsInFile = "./outputs.tf",
     [string]$OutputsOutFile = "./outputs.tf",
-    [string]$GitTag = "1.0.0",
+    [string]$GitTag = "2.0.1",
     [string]$GitCommitMessage = "Update code",
     [bool]$SortInputs = $true,
     [bool]$SortOutputs = $true,
-    [bool]$GitRelease = $false,
+    [bool]$GitRelease = $true,
     [bool]$FormatTerraform = $true,
     [bool]$GenerateNewReadme = $true
 )
@@ -133,7 +133,7 @@ function Update-ReadmeWithTerraformDocs {
     try {
         $terraformDocsPath = Get-Command terraform-docs -ErrorAction Stop
         Write-Host "Success: Terraform-docs found at: $($terraformDocsPath.Source)" -ForegroundColor Green
-        }
+    }
     catch {
         Write-Error "Error: Terraform-docs is not installed or not in PATH, Skipping README generation."
     }
