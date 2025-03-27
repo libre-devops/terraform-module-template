@@ -15,6 +15,6 @@ data "azurerm_key_vault" "mgmt_kv" {
 }
 
 data "azurerm_user_assigned_identity" "mgmt_user_assigned_id" {
-  name                = "id-${var.short}-${var.loc}-${var.env}-mgmt-01"
+  name                = "uid-${var.short}-${var.loc}-${var.env}-mgmt-01"
   resource_group_name = data.azurerm_resource_group.mgmt_rg.name
 }
