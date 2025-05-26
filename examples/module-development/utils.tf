@@ -12,8 +12,3 @@ variable "Regions" {
 locals {
   location = lookup(var.Regions, var.loc, "UK South")
 }
-
-resource "random_string" "entropy" {
-  length  = 4
-  special = false
-}
