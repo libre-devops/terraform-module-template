@@ -28,7 +28,7 @@ param (
     [string]$TerraformStackToRunJson = '["module-development"]', # JSON format Use 'all' to run 0_, 1_, etc and destroy in reverse order 1_, 0_ etc
     [string]$CreateTerraformWorkspace = "true",
     [string]$TerraformWorkspace = "dev",
-    [string]$InstallAzureCli = "falFnse",
+    [string]$InstallAzureCli = "false",
     [string]$UseAzureServiceConnection = "true",
     [string]$AttemptAzureLogin = "false",
     [string]$UseAzureClientSecretLogin = "false",
