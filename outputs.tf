@@ -1,4 +1,4 @@
 output "hello" {
-  description = var.name
+  description = "Hello"
   value       = local.hello
 }
