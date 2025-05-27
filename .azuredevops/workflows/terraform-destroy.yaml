@@ -5,7 +5,7 @@ trigger: none
 parameters:
   - name: ServiceConnection
     type: string
-    default: "fedcred-msi-azdo-libredevops-4a23d149-8cee-4643-a57b-3b3db30e54ce"
+    default: "spn-libd-uks-dev-mgmt-01"
     displayName: 'Azure DevOps Service Connection'
     values:
       - "spn-libd-uks-dev-mgmt-01-client-secret-enabled"
