@@ -107,4 +107,4 @@ stages:
       TerraformInitExtraArgsJson: ${{ parameters.TerraformInitExtraArgsJson }}
       TerraformPlanExtraArgsJson: ${{ parameters.TerraformPlanExtraArgsJson }}
       AzureDevOpsPoolName: ${{ parameters.AzureDevOpsPoolName }}
-      dependsOnStages: ${{ parameters.dependsOn }}
+      dependsOnStages: ${{ parameters.dependsOnStages }}
