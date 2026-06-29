@@ -2,29 +2,23 @@
 name: "Bug report \U0001F41B"
 about: Report errors or unexpected behaviour
 title: 'Bug Report'
-labels: 'needs triage :warning:'
+labels: 'needs triage'
 assignees: ''
 ---
 
-### Community Note
+### Community note
 
-<!--- Please keep this note for the community --->
-
-- Please vote on this issue by adding a 👍 [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue to help the community and maintainers prioritize this request
-- Please do not leave "+1" or "me too" comments, they generate extra noise for issue followers and do not help prioritize the request
-- If you are interested in working on this issue or have submitted a pull request, please leave a comment
-
-<!--- Thank you for keeping this note for the community --->
+- Please vote on this issue by adding a thumbs-up reaction to the original issue, to help the
+  community and maintainers prioritise it.
+- Please do not leave "+1" or "me too" comments; they add noise without helping triage.
+- If you are working on this issue or have opened a pull request, please leave a comment.
 
 ### Versions
 
-<!-- Please tell us the versions of terraform, azure provider and this module you are using, to help us replicate the issue. -->
-
-**terraform**:
-
-**azure provider**:
-
-**module**:
+- **terraform**:
+- **azurerm provider**:
+- **terraform-azure action (tag or sha)**:
+- **LibreDevOpsHelpers**:
 
 ### Description
 
@@ -32,18 +26,20 @@ assignees: ''
 
 <!-- A clear and concise description of what the bug is. -->
 
-#### Steps to Reproduce
-
-<!-- Please provide detailed steps for reproducing the issue. -->
+#### Steps to reproduce
 
 1. step 1
 2. step 2
-3. you get it...
+3. ...
 
-#### Screenshots
+#### Expected behaviour
 
-<!-- If applicable, add screenshots to help explain your problem. -->
+<!-- What you expected to happen. -->
+
+#### Logs
+
+<!-- Relevant run logs. The action logs structured JSON; include the trace_id if you can. -->
 
 #### Additional context
 
-<!-- Add any other context about the problem here. -->
+<!-- Anything else that helps explain the problem. -->

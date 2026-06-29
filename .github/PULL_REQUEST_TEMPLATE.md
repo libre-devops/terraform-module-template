@@ -1,29 +1,27 @@
 <!-- markdownlint-disable first-line-h1 -->
+<!-- Thank you for submitting a pull request. Please fill out the template below. -->
 
-<!-- Thank you for submitting a Pull Request. Please fill out the template below.-->
-## Overview/Summary
+## Overview
 
-Replace this with a brief description of what this Pull Request fixes, changes, etc.
+<!-- A brief description of what this pull request fixes, changes, or adds. -->
 
-## This PR fixes/adds/changes/removes
-
-1. *Replace me*
-2. *Replace me*
-3. *Replace me*
-
-### Breaking Changes
+## This PR fixes / adds / changes / removes
 
 1. *Replace me*
 2. *Replace me*
 
-## Testing Evidence
+### Breaking changes
 
-Please provide any testing evidence to show that your Pull Request works/fixes as described and planned (include screenshots, if appropriate).
+1. *Replace me, or state "None".*
 
-## As part of this Pull Request I have
+## Testing evidence
 
-- [ ] Checked for duplicate
-- [ ] Associated it with relevant 
-- [ ] Ensured my code/branch is up-to-date with the latest changes in the `main`
-- [ ] Performed testing and provided evidence.
-- [ ] Updated relevant and associated documentation.
+<!-- Show that the change works: CI run, local run output, or screenshots as appropriate. -->
+
+## Checklist
+
+- [ ] Checked for duplicate pull requests and issues.
+- [ ] Branch is up to date with the latest `main`.
+- [ ] `terraform fmt -check -recursive` passes, and the examples `validate`, `tflint`, and `trivy` clean.
+- [ ] PSScriptAnalyzer and the Pester tests pass.
+- [ ] Updated the relevant documentation.

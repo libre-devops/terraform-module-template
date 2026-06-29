@@ -1,23 +1,17 @@
-variable "location" {
-  description = "The location for this resource to be put in"
-  type        = string
-  default     = "uksouth"
-}
+# Rename this to match the resources your module manages. The list(object) pattern keeps the
+# interface stable: new optional attributes can be added with optional() defaults without
+# breaking existing callers.
+variable "resource_groups" {
+  description = "List of resource groups to create."
+  type = list(object({
+    name     = string
+    location = string
+    tags     = optional(map(string), {})
+  }))
+  default = []
 
-variable "name" {
-  type        = string
-  description = "The name of the resource"
-  default     = "hello"
-}
-
-variable "rg_name" {
-  description = "The name of the resource group, this module does not create a resource group, it is expecting the value of a resource group already exists"
-  type        = string
-  default     = null
-}
-
-variable "tags" {
-  type        = map(string)
-  description = "A map of the tags to use on the resources that are deployed with this module."
-  default     = null
+  validation {
+    condition     = alltrue([for rg in var.resource_groups : length(rg.name) > 0])
+    error_message = "Each resource_groups[*].name must be a non-empty string."
+  }
 }

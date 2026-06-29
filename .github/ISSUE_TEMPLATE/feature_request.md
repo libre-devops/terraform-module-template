@@ -1,31 +1,31 @@
 ---
 name: "Feature request \U0001F680"
-about: Suggest an idea for this project
+about: Suggest an idea or enhancement
 title: 'Feature Request'
-labels: 'needs triage :warning:'
+labels: 'enhancement'
 assignees: ''
 ---
 
-### Community Note
+### Community note
 
-<!--- Please keep this note for the community --->
-
-- Please vote on this issue by adding a 👍 [reaction](https://blog.github.com/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) to the original issue to help the community and maintainers prioritize this request
-- Please do not leave "+1" or "me too" comments, they generate extra noise for issue followers and do not help prioritize the request
-- If you are interested in working on this issue or have submitted a pull request, please leave a comment
-
-<!--- Thank you for keeping this note for the community --->
+- Please vote on this issue by adding a thumbs-up reaction to the original issue, to help the
+  community and maintainers prioritise it.
+- Please do not leave "+1" or "me too" comments; they add noise without helping triage.
 
 ### Description
 
-#### Is your feature request related to a problem?
+#### What problem are you trying to solve?
 
-<!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
+<!-- A clear and concise description of the problem or limitation. -->
 
-#### Describe the solution you'd like
+#### Proposed solution
 
-<!-- A clear and concise description of what you want to happen. -->
+<!-- What you would like to happen. -->
 
-<!-- A clear and concise description of any alternative solutions or features you've considered. -->
+#### Alternatives considered
+
+<!-- Any alternative approaches you have considered. -->
 
 #### Additional context
+
+<!-- Anything else that helps explain the request. -->
