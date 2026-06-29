@@ -45,11 +45,16 @@ module "this" {
 
 ## Developing
 
-This repo is a local on-ramp to the `libre-devops/terraform-azure` action. Install
-[`just`](https://github.com/casey/just) (`brew install just`, or `uv tool add rust-just` then
-`uv run just <recipe>`) and run `just` to list recipes: `just validate`, `just plan`, `just apply`,
-`just destroy`, `just test`, and `just docs`. The plan/apply/destroy recipes call
-`Invoke-LdoTerraform.ps1` locally, the same engine the action runs in CI.
+This repo is a local on-ramp to the `libre-devops/terraform-azure` action. It needs **PowerShell 7+**
+and **[`just`](https://github.com/casey/just)**, because the recipes wrap the
+[LibreDevOpsHelpers](https://www.powershellgallery.com/packages/LibreDevOpsHelpers) PowerShell
+module that the action uses. Install just with `brew install just`, or `uv tool add rust-just` then
+`uv run just <recipe>`.
+
+Run `just` to list recipes: `just validate`, `just plan`, `just apply`, `just destroy`, `just test`,
+and `just docs` (the plan/apply/destroy recipes mirror the action, including the storage firewall
+dance). Releasing is also `just`: `just increment-release [patch|minor|major]` bumps, tags, and
+publishes a GitHub release, and the Terraform Registry picks up the tag.
 
 ## Reference
 

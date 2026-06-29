@@ -115,3 +115,65 @@ _run op stack ws:
     finally {
         if ($added) { Remove-LdoStorageCurrentIpRule -ResourceGroup $rg -StorageAccountName $sa }
     }
+
+# --- Release management -------------------------------------------------------------------
+# Tags are semver vX.Y.Z and the Terraform Registry picks them up automatically. For repos that
+# use a moving major alias (for example a GitHub Action's v1), move it after release with:
+#   just force-push-tag v1
+
+# Create and push an annotated tag. Example: just tag v1.2.3
+tag version:
+    git tag -a '{{ version }}' -m 'Release {{ version }}'
+    git push origin '{{ version }}'
+
+# Bump the latest vX.Y.Z tag and push the new tag. level = patch (default), minor, or major.
+increment-tag level="patch":
+    #!/usr/bin/env pwsh
+    $tags = @(git tag --list | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' })
+    $cur = if ($tags.Count -eq 0) { [version]'0.0.0' } else { ($tags | ForEach-Object { [version]($_.Substring(1)) } | Sort-Object)[-1] }
+    switch ('{{ level }}') {
+        'major' { $next = "v$($cur.Major + 1).0.0" }
+        'minor' { $next = "v$($cur.Major).$($cur.Minor + 1).0" }
+        'patch' { $next = "v$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
+        default { throw "level must be patch, minor, or major" }
+    }
+    git tag -a $next -m "Release $next"
+    git push origin $next
+    Write-Host "Tagged and pushed $next"
+
+# Create a GitHub release from an existing tag, with auto-generated notes. Example: just release v1.2.3
+release version:
+    gh release create '{{ version }}' --title '{{ version }}' --generate-notes
+
+# Tag a specific version and release it. Example: just tag-and-release v1.2.3
+tag-and-release version:
+    #!/usr/bin/env pwsh
+    git tag -a '{{ version }}' -m 'Release {{ version }}'
+    git push origin '{{ version }}'
+    gh release create '{{ version }}' --title '{{ version }}' --generate-notes
+
+# Bump the latest tag, push it, and create a release. level = patch (default), minor, or major.
+increment-release level="patch":
+    #!/usr/bin/env pwsh
+    $tags = @(git tag --list | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' })
+    $cur = if ($tags.Count -eq 0) { [version]'0.0.0' } else { ($tags | ForEach-Object { [version]($_.Substring(1)) } | Sort-Object)[-1] }
+    switch ('{{ level }}') {
+        'major' { $next = "v$($cur.Major + 1).0.0" }
+        'minor' { $next = "v$($cur.Major).$($cur.Minor + 1).0" }
+        'patch' { $next = "v$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
+        default { throw "level must be patch, minor, or major" }
+    }
+    git tag -a $next -m "Release $next"
+    git push origin $next
+    gh release create $next --title $next --generate-notes
+    Write-Host "Released $next"
+
+# Bump, tag, and release in one step (same as increment-release). Example: just increment-tag-and-release minor
+increment-tag-and-release level="patch":
+    just increment-release {{ level }}
+
+# Force-update a tag to a ref and push it, for example to move a major alias. Example: just force-push-tag v1
+force-push-tag tag ref="HEAD":
+    git tag -f '{{ tag }}' '{{ ref }}'
+    git push -f origin '{{ tag }}'
+    @echo "Force-pushed {{ tag }} to {{ ref }}"
