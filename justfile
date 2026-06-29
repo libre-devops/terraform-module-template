@@ -17,6 +17,10 @@ set shell := ["pwsh", "-NoProfile", "-Command"]
 
 workspace := env_var_or_default("TF_WORKSPACE", "dev")
 
+# Tag prefix. Empty for Terraform modules so tags are plain semver (1.2.3), which the Terraform
+# Registry requires. GitHub Action repos set this to "v".
+tag_prefix := ""
+
 # List available recipes.
 default:
     just --list
@@ -117,62 +121,69 @@ _run op stack ws:
     }
 
 # --- Release management -------------------------------------------------------------------
-# Tags are semver vX.Y.Z and the Terraform Registry picks them up automatically. For repos that
-# use a moving major alias (for example a GitHub Action's v1), move it after release with:
-#   just force-push-tag v1
+# Tags are plain semver (1.2.3) so the Terraform Registry picks them up. Pass a bare version like
+# 1.2.3; the tag_prefix variable (empty here) is applied automatically. Action repos set
+# tag_prefix to "v" and use force-push-tag to move a moving major alias.
 
-# Create and push an annotated tag. Example: just tag v1.2.3
+# Create and push an annotated tag. Example: just tag 1.2.3
 tag version:
-    git tag -a '{{ version }}' -m 'Release {{ version }}'
-    git push origin '{{ version }}'
+    git tag -a '{{ tag_prefix }}{{ version }}' -m 'Release {{ tag_prefix }}{{ version }}'
+    git push origin '{{ tag_prefix }}{{ version }}'
 
-# Bump the latest vX.Y.Z tag and push the new tag. level = patch (default), minor, or major.
+# Bump the latest semver tag and push the new tag. level = patch (default), minor, or major.
 increment-tag level="patch":
     #!/usr/bin/env pwsh
-    $tags = @(git tag --list | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' })
-    $cur = if ($tags.Count -eq 0) { [version]'0.0.0' } else { ($tags | ForEach-Object { [version]($_.Substring(1)) } | Sort-Object)[-1] }
+    $prefix = '{{ tag_prefix }}'
+    $re = '^' + [regex]::Escape($prefix) + '\d+\.\d+\.\d+$'
+    $tags = @(git tag --list | Where-Object { $_ -match $re })
+    $cur = if ($tags.Count -eq 0) { [version]'0.0.0' } else { ($tags | ForEach-Object { [version]($_.Substring($prefix.Length)) } | Sort-Object)[-1] }
     switch ('{{ level }}') {
-        'major' { $next = "v$($cur.Major + 1).0.0" }
-        'minor' { $next = "v$($cur.Major).$($cur.Minor + 1).0" }
-        'patch' { $next = "v$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
+        'major' { $next = "$($cur.Major + 1).0.0" }
+        'minor' { $next = "$($cur.Major).$($cur.Minor + 1).0" }
+        'patch' { $next = "$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
         default { throw "level must be patch, minor, or major" }
     }
-    git tag -a $next -m "Release $next"
-    git push origin $next
-    Write-Host "Tagged and pushed $next"
+    $tag = "$prefix$next"
+    git tag -a $tag -m "Release $tag"
+    git push origin $tag
+    Write-Host "Tagged and pushed $tag"
 
-# Create a GitHub release from an existing tag, with auto-generated notes. Example: just release v1.2.3
+# Create a GitHub release from an existing tag, with auto-generated notes. Example: just release 1.2.3
 release version:
-    gh release create '{{ version }}' --title '{{ version }}' --generate-notes
+    gh release create '{{ tag_prefix }}{{ version }}' --title '{{ tag_prefix }}{{ version }}' --generate-notes
 
-# Tag a specific version and release it. Example: just tag-and-release v1.2.3
+# Tag a specific version and release it. Example: just tag-and-release 1.2.3
 tag-and-release version:
     #!/usr/bin/env pwsh
-    git tag -a '{{ version }}' -m 'Release {{ version }}'
-    git push origin '{{ version }}'
-    gh release create '{{ version }}' --title '{{ version }}' --generate-notes
+    $tag = '{{ tag_prefix }}{{ version }}'
+    git tag -a $tag -m "Release $tag"
+    git push origin $tag
+    gh release create $tag --title $tag --generate-notes
 
 # Bump the latest tag, push it, and create a release. level = patch (default), minor, or major.
 increment-release level="patch":
     #!/usr/bin/env pwsh
-    $tags = @(git tag --list | Where-Object { $_ -match '^v\d+\.\d+\.\d+$' })
-    $cur = if ($tags.Count -eq 0) { [version]'0.0.0' } else { ($tags | ForEach-Object { [version]($_.Substring(1)) } | Sort-Object)[-1] }
+    $prefix = '{{ tag_prefix }}'
+    $re = '^' + [regex]::Escape($prefix) + '\d+\.\d+\.\d+$'
+    $tags = @(git tag --list | Where-Object { $_ -match $re })
+    $cur = if ($tags.Count -eq 0) { [version]'0.0.0' } else { ($tags | ForEach-Object { [version]($_.Substring($prefix.Length)) } | Sort-Object)[-1] }
     switch ('{{ level }}') {
-        'major' { $next = "v$($cur.Major + 1).0.0" }
-        'minor' { $next = "v$($cur.Major).$($cur.Minor + 1).0" }
-        'patch' { $next = "v$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
+        'major' { $next = "$($cur.Major + 1).0.0" }
+        'minor' { $next = "$($cur.Major).$($cur.Minor + 1).0" }
+        'patch' { $next = "$($cur.Major).$($cur.Minor).$($cur.Build + 1)" }
         default { throw "level must be patch, minor, or major" }
     }
-    git tag -a $next -m "Release $next"
-    git push origin $next
-    gh release create $next --title $next --generate-notes
-    Write-Host "Released $next"
+    $tag = "$prefix$next"
+    git tag -a $tag -m "Release $tag"
+    git push origin $tag
+    gh release create $tag --title $tag --generate-notes
+    Write-Host "Released $tag"
 
 # Bump, tag, and release in one step (same as increment-release). Example: just increment-tag-and-release minor
 increment-tag-and-release level="patch":
     just increment-release {{ level }}
 
-# Force-update a tag to a ref and push it, for example to move a major alias. Example: just force-push-tag v1
+# Force-update a tag to a ref and push it (literal tag), for example a moving major alias.
 force-push-tag tag ref="HEAD":
     git tag -f '{{ tag }}' '{{ ref }}'
     git push -f origin '{{ tag }}'
