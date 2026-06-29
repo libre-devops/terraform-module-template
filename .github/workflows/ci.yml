@@ -89,6 +89,7 @@ jobs:
           arm-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           firewall-storage-account-name: ${{ secrets.TFSTATE_STORAGE_ACCOUNT }}
           firewall-storage-resource-group: ${{ secrets.TFSTATE_RESOURCE_GROUP }}
+          terraform-init-extra-args-json: '["-reconfigure","-upgrade","-backend-config=resource_group_name=${{ secrets.TFSTATE_RESOURCE_GROUP }}","-backend-config=storage_account_name=${{ secrets.TFSTATE_STORAGE_ACCOUNT }}","-backend-config=container_name=${{ secrets.TFSTATE_BLOB_CONTAINER }}"]'
 
       - name: Plan-destroy and destroy the minimal example
         if: always()
@@ -104,3 +105,4 @@ jobs:
           arm-subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
           firewall-storage-account-name: ${{ secrets.TFSTATE_STORAGE_ACCOUNT }}
           firewall-storage-resource-group: ${{ secrets.TFSTATE_RESOURCE_GROUP }}
+          terraform-init-extra-args-json: '["-reconfigure","-upgrade","-backend-config=resource_group_name=${{ secrets.TFSTATE_RESOURCE_GROUP }}","-backend-config=storage_account_name=${{ secrets.TFSTATE_STORAGE_ACCOUNT }}","-backend-config=container_name=${{ secrets.TFSTATE_BLOB_CONTAINER }}"]'
