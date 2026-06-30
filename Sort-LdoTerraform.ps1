@@ -43,6 +43,16 @@ if ($IncludeExamples) {
     if (Test-Path $examplesRoot) {
         Get-ChildItem -Path $examplesRoot -Directory | ForEach-Object {
             Format-LdoTerraformCode -CodePath $_.FullName
+
+            # Regenerate the example README too when it carries its own header file, so each
+            # example folder gets the same terraform-docs treatment as the module root.
+            $exampleHeader = Join-Path $_.FullName $ReadmeHeaderFile
+            if (Test-Path $exampleHeader -PathType Leaf) {
+                Update-LdoReadmeWithTerraformDocs -CodePath $_.FullName -ReadmeHeaderFile $ReadmeHeaderFile
+            }
+            else {
+                Write-Verbose "No $ReadmeHeaderFile in $($_.FullName); skipping README generation for this example."
+            }
         }
     }
 }

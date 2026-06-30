@@ -45,16 +45,38 @@ module "this" {
 
 ## Developing
 
-This repo is a local on-ramp to the `libre-devops/terraform-azure` action. It needs **PowerShell 7+**
-and **[`just`](https://github.com/casey/just)**, because the recipes wrap the
-[LibreDevOpsHelpers](https://www.powershellgallery.com/packages/LibreDevOpsHelpers) PowerShell
-module that the action uses. Install just with `brew install just`, or `uv tool add rust-just` then
-`uv run just <recipe>`.
+This repo is the template every Libre DevOps Terraform module is generated from: clone it, swap in
+your resources, and you inherit the standard layout, examples, tests, CI, and release tooling. Local
+work needs **PowerShell 7+** and **[`just`](https://github.com/casey/just)**, because the recipes
+wrap the [LibreDevOpsHelpers](https://www.powershellgallery.com/packages/LibreDevOpsHelpers)
+PowerShell module (the same engine the `libre-devops/terraform-azure` action runs in CI). Install
+just with `brew install just`, or `uv tool add rust-just` then `uv run just <recipe>`.
 
-Run `just` to list recipes: `just validate`, `just plan`, `just apply`, `just destroy`, `just test`,
-and `just docs` (the plan/apply/destroy recipes mirror the action, including the storage firewall
-dance). Releasing is also `just`: `just increment-release [patch|minor|major]` bumps, tags, and
-publishes a GitHub release, and the Terraform Registry picks up the tag.
+Run `just` to list recipes: `just update-ldo-pwsh` (install or force-update LibreDevOpsHelpers from
+PSGallery), `just validate`, `just scan` (Trivy only), `just pwsh-analyze` (PSScriptAnalyzer only),
+`just plan`, `just apply`, `just destroy`, `just e2e`, `just test`, and `just docs` (the
+plan/apply/destroy recipes mirror the action, including the storage firewall dance; `just e2e`
+applies an example then always destroys it, defaulting to `minimal`, so nothing is left running).
+Releasing is also `just`:
+`just increment-release [patch|minor|major]` bumps, tags, and publishes a GitHub release, and the
+Terraform Registry picks up the tag.
+
+## Security scan exceptions
+
+This module is scanned with [Trivy](https://github.com/aquasecurity/trivy); HIGH and CRITICAL
+findings fail the build. Any waiver is a deliberate, reviewed decision, never a way to quiet a
+finding that should be fixed. Waivers live in [`.trivyignore.yaml`](./.trivyignore.yaml) (the
+machine-applied source of truth, passed to Trivy with `--ignorefile`) and are mirrored in the table
+below so the reason is auditable.
+
+| Trivy ID | Resource | Finding | Justification |
+|----------|----------|---------|---------------|
+| _None_   |          |         |               |
+
+To add an exception: add an entry to `.trivyignore.yaml` (`id`, optional `paths` to scope it, and a
+`statement` recording why), then add a matching row here. Where the finding is out of this module's
+scope, point the justification at the Libre DevOps module that does address it (for example the
+private-endpoint module). Both the file and this table are reviewed in the pull request.
 
 ## Reference
 
