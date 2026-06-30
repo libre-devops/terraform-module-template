@@ -25,16 +25,23 @@ tag_prefix := ""
 default:
     just --list
 
+# Install or force-update LibreDevOpsHelpers (the engine the recipes wrap) from PSGallery.
+update-ldo-pwsh:
+    if (Get-Module -ListAvailable LibreDevOpsHelpers) { Update-Module LibreDevOpsHelpers -Force; Write-Host 'Updated LibreDevOpsHelpers to the latest from PSGallery.' } else { Install-Module LibreDevOpsHelpers -Scope CurrentUser -Force -AllowClobber; Write-Host 'Installed LibreDevOpsHelpers from PSGallery.' }
+
 # Format every Terraform file in place.
 fmt:
     terraform fmt -recursive
 
 # Offline quality gates for the module and its examples: format check, validate, tflint, trivy.
+# (Conftest naming checks need a plan, so they run in plan/apply/e2e, not here.)
 validate:
     #!/usr/bin/env pwsh
     Set-StrictMode -Version Latest
     $ErrorActionPreference = 'Stop'
     Import-Module LibreDevOpsHelpers -Force
+    Set-LdoLogFormat -Format Text
+    Clear-LdoFinding
     foreach ($path in @('.', 'examples/minimal', 'examples/complete')) {
         Write-Host "== $path =="
         Invoke-LdoTerraformFmtCheck -CodePath $path
@@ -43,6 +50,37 @@ validate:
         Invoke-LdoTfLint -CodePath $path
         Invoke-LdoTrivy -CodePath $path
     }
+    Show-LdoFindingsSummary
+
+# Trivy config scan over the module and its examples (no init or cloud needed). Gates on
+# HIGH,CRITICAL like the action; a subset of `validate` for when you only want the security scan.
+scan:
+    #!/usr/bin/env pwsh
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = 'Stop'
+    Import-Module LibreDevOpsHelpers -Force
+    Set-LdoLogFormat -Format Text
+    Clear-LdoFinding
+    foreach ($path in @('.', 'examples/minimal', 'examples/complete')) {
+        Write-Host "== $path =="
+        Invoke-LdoTrivy -CodePath $path
+    }
+    Show-LdoFindingsSummary
+
+# Run PSScriptAnalyzer over the repo's PowerShell scripts using the repo settings. Fails on Error.
+pwsh-analyze:
+    #!/usr/bin/env pwsh
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = 'Stop'
+    if (-not (Get-Module -ListAvailable PSScriptAnalyzer)) { Install-Module PSScriptAnalyzer -MinimumVersion 1.21.0 -Force -Scope CurrentUser }
+    $scripts = Get-ChildItem -Path . -Filter *.ps1 -File
+    if (-not $scripts) { Write-Host 'No PowerShell scripts to analyze.'; return }
+    $results = $scripts | ForEach-Object { Invoke-ScriptAnalyzer -Path $_.FullName -Settings ./PSScriptAnalyzerSettings.psd1 }
+    if (@($results | Where-Object { $_.Severity -eq 'Error' }).Count -gt 0) {
+        $results | Format-Table -AutoSize | Out-String | Write-Host
+        throw 'PSScriptAnalyzer found errors.'
+    }
+    Write-Host 'PSScriptAnalyzer: clean.'
 
 # Run the native terraform tests (plan-time, mocked provider, no cloud credentials).
 test:
@@ -65,6 +103,85 @@ apply stack="complete":
 destroy stack="complete":
     just _run destroy {{ stack }} {{ workspace }}
 
+# Apply an example then always destroy it in the same run (destroy even if apply fails), so
+# nothing is left running to incur Azure cost. Mirrors the CI self-test. Defaults to the minimal
+# example. Example: just e2e complete
+e2e stack="minimal":
+    #!/usr/bin/env pwsh
+    Set-StrictMode -Version Latest
+    $ErrorActionPreference = 'Stop'
+    Import-Module LibreDevOpsHelpers -Force
+    Set-LdoLogFormat -Format Text
+    Set-LdoTraceContext -Generate
+    Clear-LdoFinding
+
+    # Conftest the plan against the naming policies, mirroring the action. Uses a local policy dir
+    # from LDO_CONFTEST_POLICIES when set, otherwise shallow-clones the public custom-policies repo.
+    function Invoke-LdoConftestPlan {
+        param([Parameter(Mandatory)][string]$CodePath)
+        if (-not (Get-Command conftest -ErrorAction SilentlyContinue)) {
+            Write-LdoLog -Level WARN -Message 'conftest not installed; skipping the naming policy check (brew install conftest, or Install-LdoConftest).'
+            return
+        }
+        $planJson = Convert-LdoTerraformPlanToJson -CodePath $CodePath -PassThru
+        $pol = $env:LDO_CONFTEST_POLICIES
+        $cfClone = $null
+        try {
+            if (-not ($pol -and (Test-Path $pol))) {
+                $cfClone = Join-Path ([System.IO.Path]::GetTempPath()) ("ldo-conftest-policies-" + [guid]::NewGuid())
+                git clone --depth 1 --branch main https://github.com/libre-devops/custom-policies.git $cfClone 2>&1 | Out-Null
+                $pol = Join-Path $cfClone 'policies'
+            }
+            Invoke-LdoConftest -PlanJsonPath $planJson -PolicyPath $pol
+        }
+        finally {
+            if ($cfClone -and (Test-Path $cfClone)) { Remove-Item $cfClone -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    }
+
+    $rg = $env:TFSTATE_RESOURCE_GROUP
+    $sa = $env:TFSTATE_STORAGE_ACCOUNT
+    $cn = $env:TFSTATE_BLOB_CONTAINER
+    if (-not ($rg -and $sa -and $cn)) {
+        throw 'Set TFSTATE_RESOURCE_GROUP, TFSTATE_STORAGE_ACCOUNT and TFSTATE_BLOB_CONTAINER (the values published by the tenant bootstrap).'
+    }
+
+    $path = 'examples/{{ stack }}'
+    $key = 'terraform-module-template-{{ stack }}.tfstate'
+    $added = $false
+    try {
+        Add-LdoStorageCurrentIpRule -ResourceGroup $rg -StorageAccountName $sa
+        $added = $true
+
+        Invoke-LdoTerraformFmtCheck -CodePath $path
+        Invoke-LdoTerraformInit -CodePath $path -InitArgs @(
+            '-reconfigure',
+            "-backend-config=resource_group_name=$rg",
+            "-backend-config=storage_account_name=$sa",
+            "-backend-config=container_name=$cn",
+            "-backend-config=key=$key"
+        )
+        Invoke-LdoTerraformWorkspaceSelect -CodePath $path -WorkspaceName '{{ workspace }}'
+        Invoke-LdoTerraformValidate -CodePath $path
+        Invoke-LdoTfLint -CodePath $path
+        Invoke-LdoTrivy -CodePath $path
+
+        try {
+            Invoke-LdoTerraformPlan -CodePath $path
+            Invoke-LdoConftestPlan -CodePath $path
+            Show-LdoFindingsSummary
+            Invoke-LdoTerraformApply -CodePath $path -SkipApprove
+        }
+        finally {
+            # Always tear the stack down, even when the apply failed, so live resources never linger.
+            Invoke-LdoTerraformPlanDestroy -CodePath $path
+            Invoke-LdoTerraformDestroy -CodePath $path -SkipApprove
+        }
+    }
+    finally {
+        if ($added) { Remove-LdoStorageCurrentIpRule -ResourceGroup $rg -StorageAccountName $sa }
+    }
+
 # Internal: run one Terraform operation against the remote backend with the storage firewall
 # opened for this machine and always closed again afterwards, mirroring the action's engine.
 _run op stack ws:
@@ -74,6 +191,31 @@ _run op stack ws:
     Import-Module LibreDevOpsHelpers -Force
     Set-LdoLogFormat -Format Text
     Set-LdoTraceContext -Generate
+    Clear-LdoFinding
+
+    # Conftest the plan against the naming policies, mirroring the action. Uses a local policy dir
+    # from LDO_CONFTEST_POLICIES when set, otherwise shallow-clones the public custom-policies repo.
+    function Invoke-LdoConftestPlan {
+        param([Parameter(Mandatory)][string]$CodePath)
+        if (-not (Get-Command conftest -ErrorAction SilentlyContinue)) {
+            Write-LdoLog -Level WARN -Message 'conftest not installed; skipping the naming policy check (brew install conftest, or Install-LdoConftest).'
+            return
+        }
+        $planJson = Convert-LdoTerraformPlanToJson -CodePath $CodePath -PassThru
+        $pol = $env:LDO_CONFTEST_POLICIES
+        $cfClone = $null
+        try {
+            if (-not ($pol -and (Test-Path $pol))) {
+                $cfClone = Join-Path ([System.IO.Path]::GetTempPath()) ("ldo-conftest-policies-" + [guid]::NewGuid())
+                git clone --depth 1 --branch main https://github.com/libre-devops/custom-policies.git $cfClone 2>&1 | Out-Null
+                $pol = Join-Path $cfClone 'policies'
+            }
+            Invoke-LdoConftest -PlanJsonPath $planJson -PolicyPath $pol
+        }
+        finally {
+            if ($cfClone -and (Test-Path $cfClone)) { Remove-Item $cfClone -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    }
 
     $rg = $env:TFSTATE_RESOURCE_GROUP
     $sa = $env:TFSTATE_STORAGE_ACCOUNT
@@ -99,20 +241,25 @@ _run op stack ws:
         )
         Invoke-LdoTerraformWorkspaceSelect -CodePath $path -WorkspaceName '{{ ws }}'
         Invoke-LdoTerraformValidate -CodePath $path
-        Invoke-LdoTfLint -CodePath $path
-        Invoke-LdoTrivy -CodePath $path
+
+        # Lint/scan gates run for plan and apply, not for a destroy teardown (matching the action).
+        if ('{{ op }}' -ne 'destroy') {
+            Invoke-LdoTfLint -CodePath $path
+            Invoke-LdoTrivy -CodePath $path
+        }
 
         switch ('{{ op }}') {
-            'plan' {
-                Invoke-LdoTerraformPlan -CodePath $path
-            }
-            'apply' {
-                Invoke-LdoTerraformPlan -CodePath $path
-                Invoke-LdoTerraformApply -CodePath $path -SkipApprove
-            }
             'destroy' {
                 Invoke-LdoTerraformPlanDestroy -CodePath $path
                 Invoke-LdoTerraformDestroy -CodePath $path -SkipApprove
+            }
+            default {
+                Invoke-LdoTerraformPlan -CodePath $path
+                Invoke-LdoConftestPlan -CodePath $path
+                Show-LdoFindingsSummary
+                if ('{{ op }}' -eq 'apply') {
+                    Invoke-LdoTerraformApply -CodePath $path -SkipApprove
+                }
             }
         }
     }
