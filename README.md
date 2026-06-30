@@ -4,14 +4,19 @@
     - replace the resources in main.tf, and the variables, outputs, and examples to match
     - run `just docs` (or Sort-LdoTerraform.ps1) to regenerate the section between the markers
 -->
+<!--
+  Keep the title and badges OUTSIDE the centered <div>: the Terraform Registry's markdown renderer
+  does not parse markdown inside an HTML block, so a # heading or [![badge]] in the div renders as
+  literal text on the registry. Only the logo (HTML) goes in the div.
+-->
 <div align="center">
-
-<a href="https://libredevops.org">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://libredevops.org/assets/libre-devops-white.png">
-    <img alt="Libre DevOps" src="https://libredevops.org/assets/libre-devops-black.png" width="300">
-  </picture>
-</a>
+  <a href="https://libredevops.org">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://libredevops.org/assets/libre-devops-white.png">
+      <img alt="Libre DevOps" src="https://libredevops.org/assets/libre-devops-black.png" width="300">
+    </picture>
+  </a>
+</div>
 
 # Terraform Module Template
 
@@ -21,8 +26,6 @@ A starting point for Libre DevOps Terraform modules: the standard file layout, e
 [![Release](https://img.shields.io/github/v/release/libre-devops/terraform-module-template?sort=semver&label=release)](https://github.com/libre-devops/terraform-module-template/releases/latest)
 [![Terraform Registry](https://img.shields.io/badge/registry-libre--devops-7B42BC?logo=terraform&logoColor=white)](https://registry.terraform.io/namespaces/libre-devops)
 [![License](https://img.shields.io/github/license/libre-devops/terraform-module-template)](./LICENSE)
-
-</div>
 
 ---
 
