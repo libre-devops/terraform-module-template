@@ -267,6 +267,18 @@ _run op stack ws:
         if ($added) { Remove-LdoStorageCurrentIpRule -ResourceGroup $rg -StorageAccountName $sa }
     }
 
+# --- Resource group management locks (operational, like the firewall dance) ---------------
+# The management lock is applied operationally, not by Terraform, so a ReadOnly lock never races
+# resources being deployed into the group. These wrap the AzureLock helpers; `az login` first.
+
+# Add a management lock to a resource group. Example: just azure-rg-lock rg-ldo-uks-prd-001 ReadOnly
+azure-rg-lock rg level="CanNotDelete":
+    Import-Module LibreDevOpsHelpers -Force; Add-LdoResourceGroupLock -ResourceGroup '{{ rg }}' -LockName 'lock-{{ rg }}' -LockLevel '{{ level }}'
+
+# Remove all management locks from a resource group. Example: just azure-remove-lock rg-ldo-uks-prd-001
+azure-remove-lock rg:
+    Import-Module LibreDevOpsHelpers -Force; Remove-LdoResourceGroupLock -ResourceGroup '{{ rg }}'
+
 # --- Release management -------------------------------------------------------------------
 # Tags are plain semver (1.2.3) so the Terraform Registry picks them up. Pass a bare version like
 # 1.2.3; the tag_prefix variable (empty here) is applied automatically. Action repos set
