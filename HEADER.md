@@ -48,9 +48,7 @@ module "this" {
 
 ## Developing
 
-This repo is the template every Libre DevOps Terraform module is generated from: clone it, swap in
-your resources, and you inherit the standard layout, examples, tests, CI, and release tooling. Local
-work needs **PowerShell 7+** and **[`just`](https://github.com/casey/just)**, because the recipes
+Local work needs **PowerShell 7+** and **[`just`](https://github.com/casey/just)**, because the recipes
 wrap the [LibreDevOpsHelpers](https://www.powershellgallery.com/packages/LibreDevOpsHelpers)
 PowerShell module (the same engine the `libre-devops/terraform-azure` action runs in CI). Install
 just with `brew install just`, or `uv tool add rust-just` then `uv run just <recipe>`.
