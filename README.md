@@ -119,4 +119,5 @@ No modules.
 |------|-------------|
 | <a name="output_ids"></a> [ids](#output\_ids) | Map of resource group name to its id. |
 | <a name="output_names"></a> [names](#output\_names) | Map of resource group name to its name. |
+| <a name="output_tags"></a> [tags](#output\_tags) | Map of resource group name to its tags. |
 <!-- END_TF_DOCS -->
