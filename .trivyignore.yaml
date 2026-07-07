@@ -9,7 +9,14 @@
 #   - Only waive a finding you have a real, defensible reason to waive. HIGH/CRITICAL is otherwise
 #     merge-blocking (see the Libre DevOps Terraform standard); a waiver is a deliberate, reviewed
 #     decision, never a way to quiet a finding you should fix.
-#   - Prefer scoping with paths so the waiver only applies where intended.
+#   - Prefer scoping with paths so the waiver only applies where intended. For findings raised
+#     inside a downloaded module, Trivy reports the path as the module SOURCE ADDRESS plus the
+#     path relative to the scan target (for example
+#     libre-devops/keyvault/azurerm/examples/complete/.terraform/modules/key_vault/main.tf from a
+#     repo-root scan, but libre-devops/keyvault/azurerm/.terraform/modules/key_vault/main.tf when
+#     the stack folder itself is scanned), so literal repo paths never match: scope those with a
+#     doublestar glob on the module-local tail, for example
+#     "**/.terraform/modules/key_vault/main.tf".
 #   - Where the finding is out of this module's scope, point the justification at the Libre DevOps
 #     module that does address it (for example the private-endpoint module).
 #
